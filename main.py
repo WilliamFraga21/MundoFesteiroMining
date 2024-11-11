@@ -1,8 +1,39 @@
-from flask import Flask, jsonify
 import mysql.connector
 import pandas as pd
-
+from flask import Flask, request, jsonify
+import base64
+import cv2
+import numpy as np
+import face_recognition
 app = Flask(__name__)
+
+
+
+@app.route('/validar_rosto', methods=['POST'])
+def reconhecer():
+    # Pega os dados JSON da requisição
+    data = request.get_json()
+
+    # Pega a imagem Base64
+    imagem_base64 = data['imagem']
+
+    # Converte a imagem de Base64 para binário
+    img_data = base64.b64decode(imagem_base64)
+    np_arr = np.frombuffer(img_data, np.uint8)
+    image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    # Detecção de rosto usando a biblioteca face_recognition
+    face_locations = face_recognition.face_locations(image)
+
+    if not face_locations:
+        return jsonify({"mensagem": "Nenhum rosto detectado."})
+
+    # Retorna a quantidade de rostos detectados
+    return jsonify({"mensagem": f"{len(face_locations)} rosto(s) detectado(s)."})
+
+
+
+
 
 # Conexão com o banco de dados
 def conectar_ao_banco():
@@ -73,5 +104,5 @@ def taxa_conversao():
     taxa_conversao = df['Status'].value_counts(normalize=True).mul(100).round(2).to_dict()
     return jsonify(taxa_conversao)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0')
