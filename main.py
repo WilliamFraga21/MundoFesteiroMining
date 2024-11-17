@@ -39,6 +39,7 @@ def salvar_rosto():
     if imagem_base64.startswith("data:image"):
         imagem_base64 = imagem_base64.split(",")[1]
 
+
     # Decodificar a imagem Base64
     try:
         img_data = base64.b64decode(imagem_base64)
